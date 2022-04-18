@@ -1,43 +1,50 @@
 #include "main.h"
 
 /**
- * _printf - produces output according to a format
- * @format: format string containing the characters and the specifiers
- * Description: this function will call the get_print() function that will
- * determine which printing function to call depending on the conversion
- * specifiers contained into fmt
- * Return: length of the formatted output string
+ * _printf - prints formatted data to stdout
+ * @format: string that contains the format to print
+ * Return: number of characters written
  */
-int _printf(const char *format, ...)
+int _printf(char *format, ...)
 {
-	register short len = 0;
-	int (*printFunc)(va_list, mods *);
-	mods prefixes = PF_INIT;
-	const char *p = format;
-	va_list arguments;
+	int written = 0, (*structype)(char *, va_list);
+	char q[3];
+	va_list pa;
 
-	va_start(arguments, format);
-	assert(invalidInputs(p));
-	for (; *p; p++)
+	if (format == NULL)
+		return (-1);
+	q[2] = '\0';
+	va_start(pa, format);
+	_putchar(-1);
+	while (format[0])
 	{
-		if (*p == '%')
+		if (format[0] == '%')
 		{
-			p++;
-			if (*p == '%')
+			structype = driver(format);
+			if (structype)
 			{
-				len += _putchar('%');
-				continue;
+				q[0] = '%';
+				q[1] = format[1];
+				written += structype(q, pa);
 			}
-			while (get_flags(*p, &prefixes))
-				p++;
-			printFunc = get_print(*p);
-			len += (printFunc)
-				? printFunc(arguments, &prefixes)
-				: _printf("%%%c", *p);
-		} else
-			len += _putchar(*p);
+			else if (format[1] != '\0')
+			{
+				written += _putchar('%');
+				written += _putchar(format[1]);
+			}
+			else
+			{
+				written += _putchar('%');
+				break;
+			}
+			format += 2;
+		}
+		else
+		{
+			written += _putchar(format[0]);
+			format++;
+		}
 	}
-	_putchar(FLUSH);
-	va_end(arguments);
-	return (len);
+	_putchar(-2);
+	return (written);
 }
